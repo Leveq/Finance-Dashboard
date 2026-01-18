@@ -1,4 +1,4 @@
-# ?? Finance Dashboard
+# Finance Dashboard
 
 A full-stack personal finance tracking application built with Blazor Server, ASP.NET Core 8, and SQL Server. Track income, expenses, and visualize spending patterns with interactive charts.
 
@@ -7,7 +7,7 @@ A full-stack personal finance tracking application built with Blazor Server, ASP
 ![SQL Server](https://img.shields.io/badge/SQL%20Server-LocalDB-CC2927?style=flat&logo=microsoftsqlserver)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.0-7952B3?style=flat&logo=bootstrap)
 
-## ? Features
+##  Features
 
 - ** Secure Authentication** - User registration and login with ASP.NET Identity
 - ** Transaction Management** - Full CRUD operations for income and expenses
