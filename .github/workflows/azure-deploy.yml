@@ -23,13 +23,13 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Restore dependencies
-      run: dotnet restore FinanceDashboard.Web/FinanceDashboard.Web.csproj
+      run: dotnet restore FinanceDashboard.Web.csproj
 
     - name: Build
-      run: dotnet build FinanceDashboard.Web/FinanceDashboard.Web.csproj --no-restore --configuration Release
+      run: dotnet build FinanceDashboard.Web.csproj --no-restore --configuration Release
 
     - name: Publish
-      run: dotnet publish FinanceDashboard.Web/FinanceDashboard.Web.csproj -c Release -o ./publish
+      run: dotnet publish FinanceDashboard.Web.csproj -c Release -o ./publish
 
     - name: Upload artifact for deployment
       uses: actions/upload-artifact@v4
