@@ -9,12 +9,12 @@ A full-stack personal finance tracking application built with Blazor Server, ASP
 
 ## ? Features
 
-- **?? Secure Authentication** - User registration and login with ASP.NET Identity
-- **?? Transaction Management** - Full CRUD operations for income and expenses
-- **?? Interactive Dashboard** - Real-time statistics and visualizations
-- **?? Charts & Analytics** - Income vs expenses trends, spending by category
-- **?? Modern UI** - Responsive Bootstrap 5 design
-- **?? Data Security** - Users can only access their own data
+- ** Secure Authentication** - User registration and login with ASP.NET Identity
+- ** Transaction Management** - Full CRUD operations for income and expenses
+- ** Interactive Dashboard** - Real-time statistics and visualizations
+- ** Charts & Analytics** - Income vs expenses trends, spending by category
+- ** Modern UI** - Responsive Bootstrap 5 design
+- ** Data Security** - Users can only access their own data
 
 ## ??? Screenshots
 
@@ -32,7 +32,7 @@ Manage all your financial transactions:
 - Filter by date range
 - Categorized with icons
 
-## ??? Tech Stack
+##  Tech Stack
 
 ### Frontend
 - **Blazor Server** - Interactive server-side UI
@@ -53,7 +53,7 @@ Manage all your financial transactions:
 - **GitHub Actions** - CI/CD pipeline
 - **Azure App Service** - Cloud hosting
 
-## ?? Getting Started
+##  Getting Started
 
 ### Prerequisites
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
@@ -103,7 +103,7 @@ docker-compose up --build
 # Access the app at http://localhost:5000
 ```
 
-## ?? Project Structure
+## Project Structure
 
 ```
 FinanceDashboard/
@@ -126,13 +126,13 @@ FinanceDashboard/
 ??? README.md
 ```
 
-## ?? Running Tests
+## Running Tests
 
 ```bash
 dotnet test
 ```
 
-## ?? Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -149,7 +149,7 @@ dotnet test
 4. Update `AZURE_WEBAPP_NAME` in `.github/workflows/azure-deploy.yml`
 5. Push to `main` branch to trigger deployment
 
-## ?? API / Service Methods
+## API / Service Methods
 
 ```csharp
 // Transaction operations
@@ -162,7 +162,7 @@ Task DeleteAsync(int id, string userId);
 Task<DashboardStats> GetDashboardStatsAsync(string userId);
 ```
 
-## ?? Security Features
+## Security Features
 
 - **Authentication**: ASP.NET Identity with secure password hashing (PBKDF2)
 - **Authorization**: `[Authorize]` attribute on protected pages
@@ -171,7 +171,7 @@ Task<DashboardStats> GetDashboardStatsAsync(string userId);
 - **XSS Prevention**: Razor automatic HTML encoding
 - **CSRF Protection**: Built-in Blazor form protection
 
-## ?? Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -179,13 +179,13 @@ Task<DashboardStats> GetDashboardStatsAsync(string userId);
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## ?? License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## ?? Author
+## Author
 
-**Kevin Cleveland**
+**Kacy Leveck**
 - GitHub: [@Leveq](https://github.com/Leveq)
 
 ---
