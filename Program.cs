@@ -45,6 +45,13 @@ builder.Services.AddRazorComponents()
 
 var app = builder.Build();
 
+// Auto-migrate database on startup (creates tables if they don't exist)
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    context.Database.Migrate();
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
