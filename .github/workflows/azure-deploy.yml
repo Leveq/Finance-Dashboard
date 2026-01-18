@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 env:
-  DOTNET_VERSION: '8.0.x'
-  AZURE_WEBAPP_NAME: 'finance-dashboard-leveq-h8fuakgmb9e6ezgb'
+DOTNET_VERSION: '8.0.x'
+AZURE_WEBAPP_NAME: 'finance-dashboard-leveq'
 
 jobs:
   build:
