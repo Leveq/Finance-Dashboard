@@ -22,12 +22,12 @@
                             <input type="radio" class="btn-check" name="transactionType" id="typeIncome" 
                                    checked="@(Model.Type == TransactionType.Income)"
                                    @onchange="() => OnTypeChanged(TransactionType.Income)" />
-                            <label class="btn btn-outline-success" for="typeIncome">?? Income</label>
+                            <label class="btn btn-outline-success" for="typeIncome">&#x1F4B0; Income</label>
 
                             <input type="radio" class="btn-check" name="transactionType" id="typeExpense"
                                    checked="@(Model.Type == TransactionType.Expense)"
                                    @onchange="() => OnTypeChanged(TransactionType.Expense)" />
-                            <label class="btn btn-outline-danger" for="typeExpense">?? Expense</label>
+                            <label class="btn btn-outline-danger" for="typeExpense">&#x1F4B8; Expense</label>
                         </div>
                     </div>
 
