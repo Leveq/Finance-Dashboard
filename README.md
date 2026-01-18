@@ -2,7 +2,7 @@
 
 A full-stack personal finance tracking application built with Blazor Server, ASP.NET Core 8, and SQL Server. Track income, expenses, and visualize spending patterns with interactive charts.
 
-🔗 **Live Demo:** [https://finance-dashboard-leveq.azurewebsites.net](https://finance-dashboard-leveq-h8fuakgmb9e6ezgb.centralus-01.azurewebsites.net)
+🔗 **Live Demo:** [https://finance.leveq.dev](https://finance.leveq.dev)
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat&logo=dotnet)
 ![Blazor](https://img.shields.io/badge/Blazor-Server-512BD4?style=flat&logo=blazor)
