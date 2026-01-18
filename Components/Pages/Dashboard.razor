@@ -1,12 +1,82 @@
 ﻿@page "/"
 @page "/dashboard"
 @attribute [Authorize]
+@using FinanceDashboard.Web.Services
+@using FinanceDashboard.Web.Models
+@using FinanceDashboard.Web.Components.Dashboard
+@inject ITransactionService TransactionService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
 
 <PageTitle>Dashboard</PageTitle>
 
-<h3>💰 Finance Dashboard</h3>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>💰 Finance Dashboard</h3>
+        <a href="/transactions" class="btn btn-primary">➕ Add Transaction</a>
+    </div>
 
-<div class="alert alert-success mt-4">
-    <h4>✅ Authentication Working!</h4>
-    <p class="mb-0">You're logged in and seeing a protected page. We'll build the actual dashboard tomorrow.</p>
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading dashboard...</p>
+        </div>
+    }
+    else if (stats != null)
+    {
+        <!-- Stats Cards -->
+        <StatsCards Stats="@stats" />
+
+        <!-- Income vs Expenses Chart -->
+        <div class="mb-4">
+            <IncomeExpenseChart MonthlyData="@stats.MonthlyTrend" />
+        </div>
+
+        <!-- Bottom Row: Expenses by Category + Recent Transactions -->
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <ExpensesByCategoryChart CategoryData="@stats.ExpensesByCategory" />
+            </div>
+            <div class="col-lg-6">
+                <RecentTransactions Transactions="@stats.RecentTransactions" />
+            </div>
+        </div>
+    }
 </div>
+
+@code {
+    private DashboardStats? stats;
+    private bool isLoading = true;
+    private string? userId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            await LoadDashboardStats();
+        }
+    }
+
+    private async Task LoadDashboardStats()
+    {
+        isLoading = true;
+        try
+        {
+            stats = await TransactionService.GetDashboardStatsAsync(userId!);
+        }
+        catch (Exception ex)
+        {
+            // Handle error - could add error message display
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

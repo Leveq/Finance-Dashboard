@@ -1,0 +1,67 @@
+@using FinanceDashboard.Web.Data.Entities
+
+<div class="table-responsive">
+    @if (Transactions == null || !Transactions.Any())
+    {
+        <div class="text-center py-5">
+            <h4 class="text-muted">?? No transactions yet</h4>
+            <p class="text-muted">Click "Add Transaction" to get started!</p>
+        </div>
+    }
+    else
+    {
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th class="text-end">Amount</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var transaction in Transactions)
+                {
+                    <tr>
+                        <td>@transaction.Date.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(transaction.Description))
+                            {
+                                @transaction.Description
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">No description</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark">
+                                @transaction.Category?.Icon @transaction.Category?.Name
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <span class="@(transaction.Type == TransactionType.Income ? "text-success" : "text-danger") fw-bold">
+                                @(transaction.Type == TransactionType.Income ? "+" : "-")$@transaction.Amount.ToString("N2")
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => OnEdit.InvokeAsync(transaction)" title="Edit">
+                                ??
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => OnDelete.InvokeAsync(transaction)" title="Delete">
+                                ???
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    [Parameter] public List<Transaction>? Transactions { get; set; }
+    [Parameter] public EventCallback<Transaction> OnEdit { get; set; }
+    [Parameter] public EventCallback<Transaction> OnDelete { get; set; }
+}

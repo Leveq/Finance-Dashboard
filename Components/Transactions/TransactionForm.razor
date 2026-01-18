@@ -1,0 +1,172 @@
+@using FinanceDashboard.Web.Data.Entities
+@using FinanceDashboard.Web.Services
+
+<div class="modal fade @(IsVisible ? "show d-block" : "")" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@(IsEdit ? "Edit" : "Add") Transaction</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <EditForm Model="@Model" OnValidSubmit="HandleSubmit" FormName="transactionForm">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">@errorMessage</div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="transactionType" id="typeIncome" 
+                                   checked="@(Model.Type == TransactionType.Income)"
+                                   @onchange="() => OnTypeChanged(TransactionType.Income)" />
+                            <label class="btn btn-outline-success" for="typeIncome">?? Income</label>
+
+                            <input type="radio" class="btn-check" name="transactionType" id="typeExpense"
+                                   checked="@(Model.Type == TransactionType.Expense)"
+                                   @onchange="() => OnTypeChanged(TransactionType.Expense)" />
+                            <label class="btn btn-outline-danger" for="typeExpense">?? Expense</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <InputNumber @bind-Value="Model.Amount" class="form-control" placeholder="0.00" />
+                        </div>
+                        <ValidationMessage For="@(() => Model.Amount)" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <InputSelect @bind-Value="Model.CategoryId" class="form-select">
+                            <option value="0">-- Select Category --</option>
+                            @foreach (var category in filteredCategories)
+                            {
+                                <option value="@category.Id">@category.Icon @category.Name</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => Model.CategoryId)" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Date</label>
+                        <InputDate @bind-Value="Model.Date" class="form-control" />
+                        <ValidationMessage For="@(() => Model.Date)" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description (optional)</label>
+                        <InputTextArea @bind-Value="Model.Description" class="form-control" rows="2" placeholder="Add a note..." />
+                        <ValidationMessage For="@(() => Model.Description)" class="text-danger" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="Close" disabled="@isSubmitting">Cancel</button>
+                    <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>@(IsEdit ? "Update" : "Add") Transaction</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public bool IsEdit { get; set; }
+    [Parameter] public TransactionFormModel Model { get; set; } = new();
+    [Parameter] public List<Category> Categories { get; set; } = new();
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<TransactionFormModel> OnSubmit { get; set; }
+
+    private List<Category> filteredCategories = new();
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    protected override void OnParametersSet()
+    {
+        FilterCategories();
+    }
+
+    private void OnTypeChanged(TransactionType type)
+    {
+        Model.Type = type;
+        Model.CategoryId = 0;
+        FilterCategories();
+    }
+
+    private void FilterCategories()
+    {
+        filteredCategories = Categories.Where(c => c.Type == Model.Type).ToList();
+    }
+
+    private async Task HandleSubmit()
+    {
+        errorMessage = null;
+
+        if (Model.Amount <= 0)
+        {
+            errorMessage = "Amount must be greater than zero.";
+            return;
+        }
+
+        if (Model.CategoryId == 0)
+        {
+            errorMessage = "Please select a category.";
+            return;
+        }
+
+        isSubmitting = true;
+        try
+        {
+            await OnSubmit.InvokeAsync(Model);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+
+    public class TransactionFormModel
+    {
+        public int Id { get; set; }
+
+        [Required]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than zero.")]
+        public decimal Amount { get; set; }
+
+        [Required]
+        public TransactionType Type { get; set; } = TransactionType.Expense;
+
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a category.")]
+        public int CategoryId { get; set; }
+
+        [Required]
+        public DateTime Date { get; set; } = DateTime.Today;
+
+        [MaxLength(500)]
+        public string? Description { get; set; }
+    }
+}

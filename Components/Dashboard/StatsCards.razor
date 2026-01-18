@@ -1,0 +1,52 @@
+@using FinanceDashboard.Web.Models
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card bg-success bg-opacity-10 border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-success mb-1">Total Income</h6>
+                        <h3 class="mb-0 text-success">$@Stats.TotalIncome.ToString("N2")</h3>
+                        <small class="text-muted">This month</small>
+                    </div>
+                    <div class="fs-1">??</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger bg-opacity-10 border-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-danger mb-1">Total Expenses</h6>
+                        <h3 class="mb-0 text-danger">$@Stats.TotalExpenses.ToString("N2")</h3>
+                        <small class="text-muted">This month</small>
+                    </div>
+                    <div class="fs-1">??</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card @(Stats.NetSavings >= 0 ? "bg-primary bg-opacity-10 border-primary" : "bg-warning bg-opacity-10 border-warning")">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="@(Stats.NetSavings >= 0 ? "text-primary" : "text-warning") mb-1">Net Savings</h6>
+                        <h3 class="mb-0 @(Stats.NetSavings >= 0 ? "text-primary" : "text-warning")">
+                            @(Stats.NetSavings >= 0 ? "+" : "")$@Stats.NetSavings.ToString("N2")
+                        </h3>
+                        <small class="text-muted">This month</small>
+                    </div>
+                    <div class="fs-1">??</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public DashboardStats Stats { get; set; } = new();
+}

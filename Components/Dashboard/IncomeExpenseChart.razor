@@ -1,0 +1,41 @@
+@using ApexCharts
+@using FinanceDashboard.Web.Models
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">?? Income vs Expenses (Last 6 Months)</h5>
+    </div>
+    <div class="card-body">
+        @if (MonthlyData == null || !MonthlyData.Any())
+        {
+            <div class="text-center py-4 text-muted">
+                <p>No data available yet. Add some transactions to see trends!</p>
+            </div>
+        }
+        else
+        {
+            <ApexChart TItem="MonthlyData"
+                       Title=""
+                       Height="300">
+                <ApexPointSeries TItem="MonthlyData"
+                                 Items="MonthlyData"
+                                 Name="Income"
+                                 SeriesType="SeriesType.Line"
+                                 XValue="@(e => e.Month)"
+                                 YValue="@(e => e.Income)"
+                                 Color="#198754" />
+                <ApexPointSeries TItem="MonthlyData"
+                                 Items="MonthlyData"
+                                 Name="Expenses"
+                                 SeriesType="SeriesType.Line"
+                                 XValue="@(e => e.Month)"
+                                 YValue="@(e => e.Expenses)"
+                                 Color="#dc3545" />
+            </ApexChart>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<MonthlyData>? MonthlyData { get; set; }
+}

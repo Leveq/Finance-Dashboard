@@ -1,0 +1,319 @@
+@page "/transactions"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Identity
+@using FinanceDashboard.Web.Data.Entities
+@using FinanceDashboard.Web.Services
+@using FinanceDashboard.Web.Components.Transactions
+@inject ITransactionService TransactionService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Transactions</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>?? Transactions</h3>
+        <button class="btn btn-primary" @onclick="OpenAddModal">
+            ? Add Transaction
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @successMessage
+            <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+        </div>
+    }
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Type</label>
+                    <select class="form-select" @onchange="OnTypeFilterChanged">
+                        <option value="">All Types</option>
+                        <option value="1">?? Income</option>
+                        <option value="2">?? Expense</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">From Date</label>
+                    <input type="date" class="form-control" @bind="startDate" @bind:after="LoadTransactions" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">To Date</label>
+                    <input type="date" class="form-control" @bind="endDate" @bind:after="LoadTransactions" />
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-outline-secondary w-100" @onclick="ClearFilters">Clear Filters</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction List -->
+    <div class="card">
+        <div class="card-body">
+            @if (isLoading)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading transactions...</p>
+                </div>
+            }
+            else
+            {
+                <TransactionList 
+                    Transactions="@transactions" 
+                    OnEdit="OpenEditModal" 
+                    OnDelete="OpenDeleteConfirmation" />
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<TransactionForm 
+    IsVisible="@showFormModal" 
+    IsEdit="@isEditMode"
+    Model="@formModel"
+    Categories="@categories"
+    OnClose="CloseFormModal"
+    OnSubmit="HandleFormSubmit" />
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">?? Confirm Delete</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDeleteModal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this transaction?</p>
+                    @if (transactionToDelete != null)
+                    {
+                        <div class="alert alert-light">
+                            <strong>@transactionToDelete.Category?.Icon @transactionToDelete.Category?.Name</strong><br />
+                            <span class="@(transactionToDelete.Type == TransactionType.Income ? "text-success" : "text-danger")">
+                                @(transactionToDelete.Type == TransactionType.Income ? "+" : "-")$@transactionToDelete.Amount.ToString("N2")
+                            </span>
+                            on @transactionToDelete.Date.ToString("MMM dd, yyyy")
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseDeleteModal" disabled="@isDeleting">Cancel</button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDelete" disabled="@isDeleting">
+                        @if (isDeleting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Transaction> transactions = new();
+    private List<Category> categories = new();
+    private string? userId;
+    private bool isLoading = true;
+    private string? successMessage;
+    private string? errorMessage;
+
+    // Filter state
+    private TransactionType? typeFilter;
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+    // Form modal state
+    private bool showFormModal = false;
+    private bool isEditMode = false;
+    private TransactionForm.TransactionFormModel formModel = new();
+
+    // Delete modal state
+    private bool showDeleteModal = false;
+    private bool isDeleting = false;
+    private Transaction? transactionToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            categories = await TransactionService.GetAllCategoriesAsync();
+            await LoadTransactions();
+        }
+    }
+
+    private async Task LoadTransactions()
+    {
+        if (string.IsNullOrEmpty(userId)) return;
+
+        isLoading = true;
+        try
+        {
+            transactions = await TransactionService.GetUserTransactionsAsync(userId, typeFilter, startDate, endDate);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to load transactions.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnTypeFilterChanged(ChangeEventArgs e)
+    {
+        if (string.IsNullOrEmpty(e.Value?.ToString()))
+        {
+            typeFilter = null;
+        }
+        else
+        {
+            typeFilter = (TransactionType)int.Parse(e.Value.ToString()!);
+        }
+        await LoadTransactions();
+    }
+
+    private async Task ClearFilters()
+    {
+        typeFilter = null;
+        startDate = null;
+        endDate = null;
+        await LoadTransactions();
+    }
+
+    private void OpenAddModal()
+    {
+        isEditMode = false;
+        formModel = new TransactionForm.TransactionFormModel
+        {
+            Date = DateTime.Today,
+            Type = TransactionType.Expense
+        };
+        showFormModal = true;
+    }
+
+    private void OpenEditModal(Transaction transaction)
+    {
+        isEditMode = true;
+        formModel = new TransactionForm.TransactionFormModel
+        {
+            Id = transaction.Id,
+            Amount = transaction.Amount,
+            Type = transaction.Type,
+            CategoryId = transaction.CategoryId,
+            Date = transaction.Date,
+            Description = transaction.Description
+        };
+        showFormModal = true;
+    }
+
+    private void CloseFormModal()
+    {
+        showFormModal = false;
+    }
+
+    private async Task HandleFormSubmit(TransactionForm.TransactionFormModel model)
+    {
+        if (string.IsNullOrEmpty(userId)) return;
+
+        try
+        {
+            if (isEditMode)
+            {
+                var transaction = new Transaction
+                {
+                    Id = model.Id,
+                    UserId = userId,
+                    Amount = model.Amount,
+                    Type = model.Type,
+                    CategoryId = model.CategoryId,
+                    Date = model.Date,
+                    Description = model.Description
+                };
+                await TransactionService.UpdateAsync(transaction);
+                successMessage = "Transaction updated successfully!";
+            }
+            else
+            {
+                var transaction = new Transaction
+                {
+                    UserId = userId,
+                    Amount = model.Amount,
+                    Type = model.Type,
+                    CategoryId = model.CategoryId,
+                    Date = model.Date,
+                    Description = model.Description
+                };
+                await TransactionService.CreateAsync(transaction);
+                successMessage = "Transaction added successfully!";
+            }
+
+            showFormModal = false;
+            await LoadTransactions();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to save transaction. Please try again.";
+        }
+    }
+
+    private void OpenDeleteConfirmation(Transaction transaction)
+    {
+        transactionToDelete = transaction;
+        showDeleteModal = true;
+    }
+
+    private void CloseDeleteModal()
+    {
+        showDeleteModal = false;
+        transactionToDelete = null;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (transactionToDelete == null || string.IsNullOrEmpty(userId)) return;
+
+        isDeleting = true;
+        try
+        {
+            await TransactionService.DeleteAsync(transactionToDelete.Id, userId);
+            successMessage = "Transaction deleted successfully!";
+            showDeleteModal = false;
+            transactionToDelete = null;
+            await LoadTransactions();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to delete transaction.";
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+}

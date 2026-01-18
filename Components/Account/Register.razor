@@ -1,5 +1,6 @@
 ﻿@page "/register"
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject NavigationManager Navigation
@@ -25,6 +26,12 @@
                         <DataAnnotationsValidator />
 
                         <div class="mb-3">
+                            <label class="form-label">First Name</label>
+                            <InputText @bind-Value="registerModel.FirstName" class="form-control" placeholder="John" />
+                            <ValidationMessage For="@(() => registerModel.FirstName)" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Email</label>
                             <InputText @bind-Value="registerModel.Email" class="form-control" placeholder="your@email.com" />
                             <ValidationMessage For="@(() => registerModel.Email)" class="text-danger" />
@@ -34,7 +41,7 @@
                             <label class="form-label">Password</label>
                             <InputText type="password" @bind-Value="registerModel.Password" class="form-control" placeholder="••••••••" />
                             <ValidationMessage For="@(() => registerModel.Password)" class="text-danger" />
-                            <small class="form-text text-muted">Minimum 6 characters, with uppercase and digit</small>
+                            <small class="form-text text-muted">Minimum 6 characters with a digit</small>
                         </div>
 
                         <div class="mb-3">
@@ -82,7 +89,8 @@
             var user = new ApplicationUser
             {
                 UserName = registerModel.Email,
-                Email = registerModel.Email
+                Email = registerModel.Email,
+                FirstName = registerModel.FirstName
             };
 
             var result = await UserManager.CreateAsync(user, registerModel.Password);
@@ -97,6 +105,10 @@
                 errorMessage = string.Join(" ", result.Errors.Select(e => e.Description));
             }
         }
+        catch (NavigationException)
+        {
+            throw; // Re-throw to allow redirect to complete
+        }
         catch (Exception ex)
         {
             errorMessage = "An error occurred. Please try again.";
@@ -109,6 +121,10 @@
 
     private class RegisterModel
     {
+        [Required]
+        [StringLength(100)]
+        public string FirstName { get; set; } = "";
+
         [Required]
         [EmailAddress]
         public string Email { get; set; } = "";

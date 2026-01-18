@@ -1,5 +1,6 @@
 using FinanceDashboard.Web.Components;
 using FinanceDashboard.Web.Data;
+using FinanceDashboard.Web.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,8 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+// Also register DbContext for Identity (it requires scoped DbContext)
+builder.Services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext());
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
@@ -29,6 +33,9 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LogoutPath = "/logout";
     options.AccessDeniedPath = "/access-denied";
 });
+
+// Register application services
+builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthorization();
