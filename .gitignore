@@ -3,6 +3,8 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+project_spec_md.md
+
 # dotenv files
 .env
 
