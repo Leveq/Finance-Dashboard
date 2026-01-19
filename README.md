@@ -31,7 +31,8 @@ The dashboard displays key financial metrics at a glance:
 - Expense breakdown by category
 - Recent transactions
 
-*(Add screenshot here once available)*
+<img width="500" height="500" alt="Screenshot-finance-dashboard" src="https://github.com/user-attachments/assets/69555c99-02ee-405c-83b2-7ad2c930cc6b" />
+
 
 ### Transactions
 Manage all your financial transactions:
@@ -40,7 +41,8 @@ Manage all your financial transactions:
 - Filter by date range
 - Categorized with icons
 
-*(Add screenshot here once available)*
+<img width="500" height="500" alt="Screenshot-finance-dashboard-transactions" src="https://github.com/user-attachments/assets/3a9018a8-f456-442a-92b4-88aae3593b0e" />
+
 
 ---
 
