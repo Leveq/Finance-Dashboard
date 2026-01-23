@@ -1,15 +1,16 @@
 @using FinanceDashboard.Web.Data.Entities
 
-<div class="table-responsive">
-    @if (Transactions == null || !Transactions.Any())
-    {
-        <div class="text-center py-5">
-            <h4 class="text-muted">&#x1F4DD; No transactions yet</h4>
-            <p class="text-muted">Click "Add Transaction" to get started!</p>
-        </div>
-    }
-    else
-    {
+@if (Transactions == null || !Transactions.Any())
+{
+    <div class="text-center py-5">
+        <h4 class="text-muted">&#x1F4DD; No transactions yet</h4>
+        <p class="text-muted">Click "Add Transaction" to get started!</p>
+    </div>
+}
+else
+{
+    <!-- Desktop Table View -->
+    <div class="d-none d-md-block table-responsive">
         <table class="table table-hover align-middle">
             <thead class="table-light">
                 <tr>
@@ -57,8 +58,48 @@
                 }
             </tbody>
         </table>
-    }
-</div>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="d-md-none">
+        @foreach (var transaction in Transactions)
+        {
+            <div class="card mb-2 shadow-sm">
+                <div class="card-body py-2 px-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-1">
+                                <span class="badge bg-light text-dark me-2">
+                                    @transaction.Category?.Icon @transaction.Category?.Name
+                                </span>
+                                <small class="text-muted">@transaction.Date.ToString("MMM dd")</small>
+                            </div>
+                            @if (!string.IsNullOrEmpty(transaction.Description))
+                            {
+                                <p class="mb-0 small text-muted text-truncate" style="max-width: 180px;">
+                                    @transaction.Description
+                                </p>
+                            }
+                        </div>
+                        <div class="text-end">
+                            <div class="@(transaction.Type == TransactionType.Income ? "text-success" : "text-danger") fw-bold">
+                                @(transaction.Type == TransactionType.Income ? "+" : "-")$@transaction.Amount.ToString("N2")
+                            </div>
+                            <div class="mt-1">
+                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" @onclick="() => OnEdit.InvokeAsync(transaction)" title="Edit">
+                                    &#x270F;&#xFE0F;
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" @onclick="() => OnDelete.InvokeAsync(transaction)" title="Delete">
+                                    &#x1F5D1;&#xFE0F;
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
 
 @code {
     [Parameter] public List<Transaction>? Transactions { get; set; }
