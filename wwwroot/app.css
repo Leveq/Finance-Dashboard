@@ -2,6 +2,20 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.6rem 1.25rem 0.7rem;
+    background-color: #ffebe9;
+    border-top: 1px solid #f85149;
+    color: #cf222e;
+    text-align: center;
+    z-index: 9999;
+}
+
 a, .btn-link {
     color: #006bb7;
 }
