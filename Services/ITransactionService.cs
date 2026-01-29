@@ -14,4 +14,5 @@ public interface ITransactionService
     Task<List<Category>> GetCategoriesByTypeAsync(TransactionType type);
     Task<List<Category>> GetAllCategoriesAsync();
     Task<DashboardStats> GetDashboardStatsAsync(string userId);
+    Task ResetDemoDataAsync(string demoUserId);
 }

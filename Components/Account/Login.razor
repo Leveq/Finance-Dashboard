@@ -1,7 +1,10 @@
 ﻿@page "/login"
 @layout AuthLayout
 @using Microsoft.AspNetCore.Identity
+@using FinanceDashboard.Web.Services
 @inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject ITransactionService TransactionService
 @inject NavigationManager Navigation
 
 <PageTitle>Login</PageTitle>
@@ -11,7 +14,7 @@
         <div class="col-md-6 col-lg-4">
             <div class="card shadow">
                 <div class="card-body p-4">
-                    <h3 class="text-center mb-4">💰 Finance Dashboard</h3>
+                    <h3 class="text-center mb-4">&#x1F4B0; Finance Dashboard</h3>
                     <h5 class="text-center text-muted mb-4">Sign In</h5>
 
                     @if (!string.IsNullOrEmpty(errorMessage))
@@ -21,40 +24,43 @@
                         </div>
                     }
 
-                    <EditForm Model="@loginModel" OnValidSubmit="HandleLogin" FormName="login">
+                    <EditForm Model="Input" OnValidSubmit="HandleLogin" FormName="login">
                         <DataAnnotationsValidator />
 
                         <div class="mb-3">
                             <label class="form-label">Email</label>
-                            <InputText @bind-Value="loginModel.Email" class="form-control" placeholder="your@email.com" />
-                            <ValidationMessage For="@(() => loginModel.Email)" class="text-danger" />
+                            <InputText @bind-Value="Input.Email" class="form-control" placeholder="your@email.com" />
+                            <ValidationMessage For="@(() => Input.Email)" class="text-danger" />
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Password</label>
-                            <InputText type="password" @bind-Value="loginModel.Password" class="form-control" placeholder="••••••••" />
-                            <ValidationMessage For="@(() => loginModel.Password)" class="text-danger" />
+                            <InputText type="password" @bind-Value="Input.Password" class="form-control" placeholder="••••••••" />
+                            <ValidationMessage For="@(() => Input.Password)" class="text-danger" />
                         </div>
 
                         <div class="mb-3 form-check">
-                            <InputCheckbox @bind-Value="loginModel.RememberMe" class="form-check-input" id="rememberMe" />
+                            <InputCheckbox @bind-Value="Input.RememberMe" class="form-check-input" id="rememberMe" />
                             <label class="form-check-label" for="rememberMe">
                                 Remember me
                             </label>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100 mb-3" disabled="@isLoading">
-                            @if (isLoading)
-                            {
-                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                <span>Signing in...</span>
-                            }
-                            else
-                            {
-                                <span>Sign In</span>
-                            }
+                        <button type="submit" class="btn btn-primary w-100 mb-2">
+                            Sign In
                         </button>
                     </EditForm>
+
+                    <!-- Demo Account - Use same form structure -->
+                    <EditForm Model="DemoInput" OnValidSubmit="TryDemo" FormName="demo">
+                        <button type="submit" class="btn btn-outline-success w-100 mb-3">
+                            &#x1F680; Try Demo Account
+                        </button>
+                    </EditForm>
+
+                    <p class="text-center text-muted small mb-3">
+                        Demo resets to fresh data each session
+                    </p>
 
                     <div class="text-center">
                         <p class="mb-0">Don't have an account? <a href="/register">Sign up</a></p>
@@ -66,23 +72,33 @@
 </div>
 
 @code {
-    [SupplyParameterFromForm]
-    private LoginModel loginModel { get; set; } = new();
+    private const string DemoEmail = "demo@financedashboard.com";
+    private const string DemoPassword = "Demo123!";
+
+    [SupplyParameterFromForm(FormName = "login")]
+    public LoginModel Input { get; set; } = new();
+
+    [SupplyParameterFromForm(FormName = "demo")]
+    public DemoModel DemoInput { get; set; } = new();
 
     private string? errorMessage;
-    private bool isLoading = false;
+
+    protected override void OnInitialized()
+    {
+        Input ??= new();
+        DemoInput ??= new();
+    }
 
     private async Task HandleLogin()
     {
-        isLoading = true;
         errorMessage = null;
 
         try
         {
             var result = await SignInManager.PasswordSignInAsync(
-                loginModel.Email,
-                loginModel.Password,
-                loginModel.RememberMe,
+                Input.Email,
+                Input.Password,
+                Input.RememberMe,
                 lockoutOnFailure: false
             );
 
@@ -97,19 +113,59 @@
         }
         catch (NavigationException)
         {
-            throw; // Re-throw to allow the redirect to complete
+            throw;
         }
         catch (Exception ex)
         {
             errorMessage = "An error occurred. Please try again.";
         }
-        finally
+    }
+
+    private async Task TryDemo()
+    {
+        errorMessage = null;
+
+        try
         {
-            isLoading = false;
+            // Get demo user
+            var demoUser = await UserManager.FindByEmailAsync(DemoEmail);
+            if (demoUser == null)
+            {
+                errorMessage = "Demo account is not available. Please try again later.";
+                return;
+            }
+
+            // Reset demo data to fresh state
+            await TransactionService.ResetDemoDataAsync(demoUser.Id);
+
+            // Sign in
+            var result = await SignInManager.PasswordSignInAsync(
+                DemoEmail,
+                DemoPassword,
+                isPersistent: false,
+                lockoutOnFailure: false
+            );
+
+            if (result.Succeeded)
+            {
+                Navigation.NavigateTo("/dashboard", forceLoad: true);
+            }
+            else
+            {
+                errorMessage = "Demo account is not available. Please try again later.";
+            }
+        }
+        catch (NavigationException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred. Please try again.";
         }
     }
 
-    private class LoginModel
+    public class LoginModel
     {
         [Required]
         [EmailAddress]
@@ -121,4 +177,6 @@
 
         public bool RememberMe { get; set; }
     }
+
+    public class DemoModel { }
 }

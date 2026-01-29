@@ -63,15 +63,21 @@
     </div>
 
     <!-- Transaction List -->
-    <div class="card">
+    <div class="card" style="min-height: 400px;">
         <div class="card-body p-2 p-md-3">
-            @if (isLoading)
+            @if (isLoading || transactions == null)
             {
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2 text-muted">Loading transactions...</p>
+                <!-- Loading skeleton -->
+                <div class="py-3">
+                    @for (int i = 0; i < 5; i++)
+                    {
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="loading-placeholder me-3" style="width: 80px; height: 20px;"></div>
+                            <div class="loading-placeholder me-3 flex-grow-1" style="height: 20px;"></div>
+                            <div class="loading-placeholder me-3" style="width: 60px; height: 20px;"></div>
+                            <div class="loading-placeholder" style="width: 80px; height: 20px;"></div>
+                        </div>
+                    }
                 </div>
             }
             else
@@ -133,30 +139,35 @@
 }
 
 @code {
-    private List<Transaction> transactions = new();
-    private List<Category> categories = new();
-    private string? userId;
-    private bool isLoading = true;
-    private string? successMessage;
-    private string? errorMessage;
+private List<Transaction>? transactions;
+private List<Category> categories = new();
+private string? userId;
+private bool isLoading = true;
+private bool hasInitialized = false;
+private string? successMessage;
+private string? errorMessage;
 
-    // Filter state
-    private TransactionType? typeFilter;
-    private DateTime? startDate;
-    private DateTime? endDate;
+// Filter state
+private TransactionType? typeFilter;
+private DateTime? startDate;
+private DateTime? endDate;
 
-    // Form modal state
-    private bool showFormModal = false;
-    private bool isEditMode = false;
-    private TransactionForm.TransactionFormModel formModel = new();
+// Form modal state
+private bool showFormModal = false;
+private bool isEditMode = false;
+private TransactionForm.TransactionFormModel formModel = new();
 
-    // Delete modal state
-    private bool showDeleteModal = false;
-    private bool isDeleting = false;
-    private Transaction? transactionToDelete;
+// Delete modal state
+private bool showDeleteModal = false;
+private bool isDeleting = false;
+private Transaction? transactionToDelete;
 
-    protected override async Task OnInitializedAsync()
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender && !hasInitialized)
     {
+        hasInitialized = true;
+            
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
@@ -164,27 +175,38 @@
         {
             categories = await TransactionService.GetAllCategoriesAsync();
             await LoadTransactions();
+            StateHasChanged();
         }
     }
+}
 
-    private async Task LoadTransactions()
+private async Task LoadTransactions()
+{
+    if (string.IsNullOrEmpty(userId)) return;
+
+    isLoading = true;
+    transactions = null; // Clear previous data
+    StateHasChanged();
+        
+    try
     {
-        if (string.IsNullOrEmpty(userId)) return;
-
-        isLoading = true;
-        try
-        {
-            transactions = await TransactionService.GetUserTransactionsAsync(userId, typeFilter, startDate, endDate);
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Failed to load transactions.";
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        // Run data fetch and minimum delay in parallel
+        var dataTask = TransactionService.GetUserTransactionsAsync(userId, typeFilter, startDate, endDate);
+        var delayTask = Task.Delay(400); // Minimum skeleton display time
+            
+        await Task.WhenAll(dataTask, delayTask);
+        transactions = dataTask.Result;
     }
+    catch (Exception ex)
+    {
+        errorMessage = "Failed to load transactions.";
+        transactions = new();
+    }
+    finally
+    {
+        isLoading = false;
+    }
+}
 
     private async Task OnTypeFilterChanged(ChangeEventArgs e)
     {

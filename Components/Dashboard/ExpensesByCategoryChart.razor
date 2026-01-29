@@ -1,11 +1,11 @@
 @using ApexCharts
 @using FinanceDashboard.Web.Models
 
-<div class="card h-100">
+<div class="card h-100" style="min-height: 350px;">
     <div class="card-header">
         <h5 class="mb-0">&#x1F967; Expenses by Category</h5>
     </div>
-    <div class="card-body">
+    <div class="card-body" style="min-height: 280px;">
         @if (CategoryData == null || !CategoryData.Any())
         {
             <div class="text-center py-4 text-muted">
